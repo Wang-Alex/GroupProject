@@ -1,28 +1,301 @@
 ---
-title: "Speed_Date"
-output: html_document
+title: "Speed dating data to predict most likely matching attributes"
+author: "Team German Election Prediction"
+output:
+  html_document:
+    css: AnalyticsStyles/default.css
+    theme: paper
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    includes:
+      in_header: AnalyticsStyles/default.sty
+always_allow_html: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+
+<hr>\clearpage
+
+# The Business Questions
+
+To analyse what profile partner would be a most likely match based on a customer dating preference questionaire
+
+The data is based on data we obtained from [Kaggle ](https://www.kaggle.com/annavictoria/speed-dating-experiment/downloads/speed-dating-experiment.zip).
+
+<hr>\clearpage
+
+# The Process
+
+1. *Part 1*: We clean the data to change categorical variables to dummy variables
+
+2. *Part 2*: Analysis
+
+3. *Part 3*: Answer the business question
+
+
+
+
+```{r setuplibraries, echo=FALSE, message=FALSE}
+suppressWarnings(source("AnalyticsLibraries/library.R"))
+# Package options
+suppressWarnings(ggthemr('fresh'))  # ggplot theme
+opts_knit$set(progress=FALSE, verbose=FALSE)
+opts_chunk$set(echo=FALSE, fig.align="center", fig.width=10, fig.height=6.35, results="asis")
+options(knitr.kable.NA = '')
 ```
 
-## R Markdown
+<hr>\clearpage
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# The Data
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+First we load the data to use (see the raw .Rmd file to change the data file as needed):
 
-```{r cars}
-summary(cars)
+```{r setupdata1E, echo=TRUE, tidy=TRUE}
+# Please ENTER the name of the file with the data used. The file should be a .csv with one row per observation (e.g. person) and one column per attribute. Do not add .csv at the end, make sure the data are numeric.
+datafile_name = "data/HR_comma_sep.csv"
+
+# Please enter the minimum number below which you would like not to print - this makes the readability of the tables easier. Default values are either 10e6 (to print everything) or 0.5. Try both to see the difference.
+MIN_VALUE = 0.5
+
+# Please enter the maximum number of observations to show in the report and slides. 
+# DEFAULT is 10. If the number is large the report may be slow.
+max_data_report = 10
 ```
 
-## Including Plots
+We clean the data to create dummy variables for the Sales and Departments.
+```{r}
+ProjectData <- read.csv(datafile_name)
+ProjectData <- data.frame(ProjectData) 
 
-You can also embed plots, for example:
+for(level in unique(ProjectData$salary)){
+  ProjectData[paste("dummy", level, sep = "_")] <- ifelse(ProjectData$salary == level, 1, 0)
+}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+for(level in unique(ProjectData$sales)){
+  ProjectData[paste("dummy", level, sep = "_")] <- ifelse(ProjectData$sales == level, 1, 0)
+}
+write.csv(ProjectData,"data/HR_clean.csv")
+
+ProjectData_INITIAL <- ProjectData
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+<hr>\clearpage
+
+# Part 1: Key Customer Characteristics
+
+We make a choice of the factor attributes and we use the Eigenvalue method to select the criterion.
+
+```{r setupfactor, echo=TRUE, tidy=TRUE}
+# Please ENTER then original raw attributes to use. 
+# Please use numbers, not column names, e.g. c(1:5, 7, 8) uses columns 1,2,3,4,5,7,8
+factor_attributes_used = c(1:6,8,11:12,14:22)
+
+# Please ENTER the selection criterions for the factors to use. 
+# Choices: "eigenvalue", "variance", "manual"
+factor_selectionciterion = "eigenvalue"
+
+# Please ENTER the desired minumum variance explained 
+# (Only used in case "variance" is the factor selection criterion used). 
+minimum_variance_explained = 65  # between 1 and 100
+
+# Please ENTER the number of factors to use 
+# (Only used in case "manual" is the factor selection criterion used).
+manual_numb_factors_used = 15
+
+# Please ENTER the rotation eventually used (e.g. "none", "varimax", "quatimax", "promax", "oblimin", "simplimax", and "cluster" - see help(principal)). Default is "varimax"
+rotation_used = "varimax"
+
+```
+
+```{r}
+factor_attributes_used <- intersect(factor_attributes_used, 1:ncol(ProjectData))
+ProjectDataFactor <- ProjectData[,factor_attributes_used]
+ProjectDataFactor <- ProjectData <- data.matrix(ProjectDataFactor)
+```
+
+## Steps 1-2: Check the Data 
+
+We check the data that it is all metric data:
+
+```{r}
+rownames(ProjectDataFactor) <- paste0("Obs.", sprintf("%02i", 1:nrow(ProjectDataFactor)))
+iprint.df(t(head(round(ProjectDataFactor, 2), max_data_report)))
+```
+
+The data we use here have the following descriptive statistics: 
+
+```{r}
+iprint.df(round(my_summary(ProjectDataFactor), 2))
+```
+
+## Step 3: Check Correlations
+
+This is the correlation matrix of the customer responses to the `r ncol(ProjectDataFactor)` attitude questions - which are the only questions that we will use for the segmentation (see the case):
+
+```{r}
+thecor = round(cor(ProjectDataFactor),2)
+iprint.df(round(thecor,2), scale=TRUE)
+```
+
+**Questions**
+
+1. Do you see any high correlations between the responses? Do they make sense? 
+2. What do these correlations imply?
+
+**Answers:**
+
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+
+## Step 4: Choose number of factors
+
+We use Principal component analysis to understand the variance explained by components. 
+
+```{r}
+# Here is how the `principal` function is used 
+UnRotated_Results<-principal(ProjectDataFactor, nfactors=ncol(ProjectDataFactor), rotate="none",score=TRUE)
+UnRotated_Factors<-round(UnRotated_Results$loadings,2)
+UnRotated_Factors<-as.data.frame(unclass(UnRotated_Factors))
+colnames(UnRotated_Factors)<-paste("Comp",1:ncol(UnRotated_Factors),sep="")
+```
+
+```{r}
+# Here is how we use the `PCA` function 
+Variance_Explained_Table_results<-PCA(ProjectDataFactor, graph=FALSE)
+Variance_Explained_Table<-Variance_Explained_Table_results$eig
+Variance_Explained_Table_copy<-Variance_Explained_Table
+
+rownames(Variance_Explained_Table) <- paste("Component", 1:nrow(Variance_Explained_Table), sep=" ")
+colnames(Variance_Explained_Table) <- c("Eigenvalue", "Pct of explained variance", "Cumulative pct of explained variance")
+```
+
+
+```{r}
+iprint.df(round(Variance_Explained_Table, 2))
+```
+
+```{r}
+eigenvalues  <- Variance_Explained_Table[, "Eigenvalue"]
+df           <- cbind(as.data.frame(eigenvalues), c(1:length(eigenvalues)), rep(1, length(eigenvalues)))
+colnames(df) <- c("eigenvalues", "components", "abline")
+iplot.df(melt(df, id="components"))
+```
+
+**Questions:**
+
+1. Can you explain what this table and the plot are? What do they indicate? What can we learn from these?
+2. Why does the plot have this specific shape? Could the plotted line be increasing? 
+3. What characteristics of these results would we prefer to see? Why?
+
+**Answers**
+
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+
+## Step 5: Interpret the factors
+
+
+```{r}
+if (factor_selectionciterion == "eigenvalue")
+  factors_selected = sum(Variance_Explained_Table_copy[,1] >= 1)
+if (factor_selectionciterion == "variance")
+  factors_selected = 1:head(which(Variance_Explained_Table_copy[,"cumulative percentage of variance"]>= minimum_variance_explained),1)
+if (factor_selectionciterion == "manual")
+  factors_selected = manual_numb_factors_used
+```
+
+In this case we selected the `r rotation_used` rotation. For our data, the `r factors_selected` selected factors look as follows after this rotation: 
+
+```{r}
+Rotated_Results<-principal(ProjectDataFactor, nfactors=max(factors_selected), rotate=rotation_used,score=TRUE)
+Rotated_Factors<-round(Rotated_Results$loadings,2)
+Rotated_Factors<-as.data.frame(unclass(Rotated_Factors))
+colnames(Rotated_Factors)<-paste("Comp.",1:ncol(Rotated_Factors),sep="")
+
+sorted_rows <- sort(Rotated_Factors[,1], decreasing = TRUE, index.return = TRUE)$ix
+Rotated_Factors <- Rotated_Factors[sorted_rows,]
+
+iprint.df(Rotated_Factors, scale=TRUE)
+```
+
+To better visualize and interpret the factors we suppress loadings with small values, e.g. with absolute values smaller than 0.5. In this case our factors look as follows after suppressing the small numbers:
+
+```{r}
+Rotated_Factors_thres <- Rotated_Factors
+Rotated_Factors_thres[abs(Rotated_Factors_thres) < MIN_VALUE]<-NA
+colnames(Rotated_Factors_thres)<- colnames(Rotated_Factors)
+rownames(Rotated_Factors_thres)<- rownames(Rotated_Factors)
+
+iprint.df(Rotated_Factors_thres, scale=TRUE)
+```
+
+**Questions**
+
+1. What do the first couple of factors mean? Do they make business sense? 
+2. How many factors should we choose for this data/customer base? Please try a few and explain your final choice based on a) statistical arguments, b) on interpretation arguments, c) on business arguments (**you need to consider all three types of arguments**)
+3. How would you interpret the factors you selected?
+4. What lessons about data science do you learn when doing this analysis? Please comment. 
+
+**Answers**
+
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+
+## Step 6:  Save factor scores 
+
+We can now either replace all initial variables used in this part with the factors scores or just select one of the initial variables for each of the selected factors in order to represent that factor. Here is how the factor scores  are for the first few respondents:
+
+```{r}
+NEW_ProjectData <- round(Rotated_Results$scores[,1:factors_selected,drop=F],2)
+colnames(NEW_ProjectData)<-paste("DV (Factor)",1:ncol(NEW_ProjectData),sep=" ")
+
+iprint.df(t(head(NEW_ProjectData, 10)), scale=TRUE)
+```
+
+**Questions**
+
+1. Can you describe some of the people using the new derived variables (factor scores)? 
+2. Which of the 29 initial variables would you select to represent each of the factors you selected?  
+
+**Answers**
+
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+
+<hr>\clearpage
+
