@@ -6,7 +6,7 @@ Authors: Judith Finegold, Kacper Ostrowski, Ulf Nore, Maciej Piotrowicz
 
 
 ```{r echo=FALSE, eval=FALSE, tidy=TRUE}
-setwd("/Users/pplee/Documents/INSEAD/P3/Big Data and Analytics/OLDGroup_project-master")
+##setwd("/GroupProject") COMMENT:We don't need to set a new directory because the project opens in the right directory anyway
 list.files()
 ```
 

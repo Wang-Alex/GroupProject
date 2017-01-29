@@ -10,7 +10,7 @@ library("MCMCglmm")
 library(tidyr)
 library(plyr)
 
-setwd("/Users/pplee/Documents/INSEAD/P3/Big Data and Analytics/OLDGroup_project-master")
+##setwd("/Users/pplee/Documents/INSEAD/P3/Big Data and Analytics/OLDGroup_project-master") COMMENT:We don't need to set a new directory because the project opens in the right directory anyway
 
 source("theme_darrel.R")
 
