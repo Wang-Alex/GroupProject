@@ -1,7 +1,12 @@
 ---
+<<<<<<< HEAD
 title: "Insead Big Data Class- Speed dating"
 output: html_document
 Authors: Judith Finegold, Kacper Ostrowski, Ulf Nore, Maciej Piotrowicz
+=======
+title: "Big Data & Analytics Group Assignment - From quantitative to quality"
+Authors: Peter-Paul de Leeuw, Alex Wang, Hichem Aber, Paulo Nakamura, Philipp Hein
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 ---
 
 
@@ -12,7 +17,13 @@ list.files()
 
 # Introduction
 
+<<<<<<< HEAD
 Speed dating is becoming an increasingly popular form of dating. We downloaded speed dating data from experiments conducted by Raymond Fisman, et al. (2006) conducted on 8378 students at Columbia University. Students were asked to score characteristics most important to them for a future date, as well as to score each person they speed dated and finally give a yes or a no to seeing the other person again on a regular date.
+=======
+The dataset we will use for this exercise is a set of speed dating data gathered by Raymond Fisman, et al. (2006) from 8378 students at Columbia University. The data includes:
+<br>- characteristics most important to them for a future date, 
+<br>- Score of each person they speed dated and finally give a yes or a no to seeing the other person again on a regular date.
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 
 We addressed the following questions:
 <br>
@@ -27,18 +38,30 @@ We addressed the following questions:
 ### Investigating the data
 
 ```{r echo=FALSE, eval=TRUE, tidy=TRUE}
+<<<<<<< HEAD
 d <- read.csv("./Data/Speed.csv", sep=",", dec="." ,header=TRUE)
+=======
+d <- read.csv("./Data/Speed.csv", sep=",", dec=".")
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 d=data.matrix(d)
 ```
 <br>
 
 Data is collected by survying `nrow(d)` participants of speed dating events. Information is then recoded into `ncol(d)` variables.  
 
+<<<<<<< HEAD
 The table below shows data from the first 20 respondents:
 <br>
 
 ```{r echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
 show_data = data.frame(round(d,2))[1:20,]
+=======
+The table below shows data from the first 50 respondents:
+<br>
+
+```{r echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
+show_data = data.frame(round(d,2))[1:50,]
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 show_data$Variables = rownames(show_data)
 library(googleVis)
 m1<-gvisTable(show_data,options=list(showRowNumber=TRUE,width=1220, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE,page='disable'))
@@ -50,16 +73,126 @@ We then plotted a histogram to show the age of the participants in the speed dat
 
 <hr>
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis',fig.align='center', fig.height=4,fig.width= 6, fig=TRUE}
+<<<<<<< HEAD
 source("Qn1.R")
 p_age 
 ```
 
+=======
+library(plotly)
+library(MASS)
+library("sjPlot")
+library("ggplot2")
+library("reshape2")
+library("dplyr")
+library("grid")
+library("gridExtra")
+library("lme4")
+library("LMERConvenienceFunctions")
+library("MCMCglmm")
+library(tidyr)
+library(plyr)
+
+##setwd("/Users/pplee/Documents/INSEAD/P3/Big Data and Analytics/OLDGroup_project-master") COMMENT:We don't need to set a new directory because the project opens in the right directory anyway
+
+theme_darrel <- function(base_size = 12, base_family="") {
+  theme(
+    axis.line =         element_line(colour = "black", size=0.25),
+    axis.text.x =       element_text(size = base_size * 0.6 , lineheight = 0.9, colour = "black", vjust = 1),
+    axis.text.y =       element_text(size = base_size * 0.8, lineheight = 0.9, colour = "black", hjust = 1),
+    axis.ticks =        element_line(colour = "black", size=0.25),
+    axis.title.x =      element_text(size = base_size, vjust = 0.5),
+    axis.title.y =      element_text(size = base_size, angle = 90, vjust = 0.5),
+    axis.ticks.length = unit(0.15, "cm"),
+    axis.ticks.margin = unit(0.1, "cm"),
+    
+    legend.background = element_blank(), 
+    legend.key =        element_blank(),
+    legend.key.size =   unit(1.2, "lines"),
+    legend.text =       element_text(size = base_size * 0.8),
+    legend.title =      element_text(size = base_size * 0.8, face = "bold", hjust = 0),
+    legend.position =   "right",
+    
+    panel.background =  element_rect(fill = NA, colour = NA, size = 0.25), 
+    panel.border =      element_blank(),
+    panel.grid.major =  element_blank(),
+    panel.grid.minor =  element_blank(),
+    panel.margin =      unit(0.25, "lines"),
+    
+    strip.background =  element_rect(fill = NA, colour = NA), 
+    strip.text.x =      element_text(family = "Helvetica", colour = "black", size = base_size),
+    strip.text.y =      element_text(family = "Helvetica", colour = "black", size = base_size, angle = -90),
+    
+    plot.background =   element_rect(colour = NA, fill = "white"),
+    plot.title =        element_text(size = base_size * 1.2),
+    plot.margin =       unit(c(1, 1, 0.5, 0.5), "lines")
+  )
+}
+
+
+d <- read.csv("./Data/Speed.csv")
+
+
+d$gender <- ifelse(d$gender==0, "Female", "Male")
+d$gender <- factor(d$gender)
+
+d_what <- d%>%
+  select(attr1_s,
+         sinc1_s,
+         fun1_1,
+         amb1_1,
+         shar1_1,
+         gender,
+         intel1_s)%>%
+  gather(Characteristic, Value, -gender, na.rm = TRUE)
+
+p_gender <- ggplot(aes(x=Characteristic), data=d_what)+
+  geom_point(aes(y=Value, x=Characteristic, group=gender, colour=gender), size=1.0, shape=16, position=position_dodge(width=0.2))+
+  stat_summary(aes(y=Value, group=gender, colour=gender), fun.y="mean", geom="point", shape=18, size=5, position=position_dodge(width=0.2))+
+  stat_summary(aes(y=Value, group=gender), colour="black", fun.y="mean", geom="point", shape=23, size=4.7, stroke=5, position=position_dodge(width=0.2))+
+  stat_summary(aes(y=Value, group=gender), fun.data="mean_cl_normal", geom="errorbar", width=0.25, position=position_dodge(width=0.6))+
+  theme_darrel()+
+  scale_y_continuous("% Importance of attribute in partner")+
+  coord_cartesian(ylim = c(0, 100))+
+  scale_x_discrete(labels=c("Attractive", "Sincere", "Fun", "Ambitious", "Shared Interests", "Intelligent"))
+
+p_age <- ggplot(aes(x=d$age_o,), data=d)+
+  stat_count()+
+  theme_darrel()+
+  coord_cartesian(xlim = c(0, 60))+
+  scale_y_continuous("Count")+
+  scale_x_continuous("Age (years)")
+
+p_race <- ggplot(aes(x=d$race,), data=d)+
+  stat_count()+
+  theme_darrel()+
+  coord_cartesian(ylim = c(0, 5000))+
+  scale_y_continuous("Count")+
+  scale_x_discrete(name= "Race", breaks=c("1", "2", "3", "4", "5", "6", "NA"),
+                 labels=c("Black", "White European", "Latino", "Asian", "Native American", "Other", "Not recorded"))
+p_age 
+```
+
+<hr>
+We then plot a gender pie chart
+
+<hr>
+
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis',fig.align='center', fig.height=4,fig.width= 6, fig=TRUE}
+
+```
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 
 ###Question 1: What do men and women look for in a date?
 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis',fig.align='center', fig.height=4,fig.width= 6, fig=TRUE}
+<<<<<<< HEAD
 source("Qn1.R")
+=======
+
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 p_gender 
 ```
 
@@ -77,7 +210,11 @@ Key findings
 
 <br>
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis',fig.align='center', fig.height=4,fig.width= 6, fig=TRUE}
+<<<<<<< HEAD
 source("Qn1.R")
+=======
+
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 p_race 
 ```
 
@@ -85,7 +222,105 @@ This histogram shows the self reported race of each participant in the speed dat
 <br>
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis',fig.align='center', fig.height=4,fig.width= 6, fig=TRUE}
+<<<<<<< HEAD
 source("SpeedDatingUlf.R")
+=======
+library(ggplot2)
+library(data.table)
+library(sqldf)
+source("theme_darrel.R")
+
+
+# Read data
+
+dt <- data.table(read.csv("./Data/Speed.csv"))
+
+
+# Keys
+
+racekey <- data.table(num = 1:6, descr =c("Black","White","Latino",
+                       "Asian","Native American","Other"))
+setkey(racekey, num)
+
+# Racial profiling
+
+race.data <- dt[, mean(like, na.rm = T), by = c("race", "race_o","imprace")]
+race.data <- race.data[is.finite(rowSums(race.data))]
+race.data[,equal := as.factor(race == race_o)]
+
+
+race.data$equal <- ifelse(race.data$equal==FALSE, "Dating a different race", "Dating same race")
+plot.data <-race.data[,mean(V1, na.rm = T), by = c("imprace", "equal")]
+
+#plot.data <- factor(plot.data)
+
+# how important people think race is vs how much they enjoy their date?
+# (there are a few donalds here)
+Plot1<- ggplot(plot.data,
+       aes(x = imprace, y = V1, colour = equal)) + 
+  geom_point(size = 2) +
+  geom_line(size = 1)+
+  theme(panel.background =  element_rect(fill = NA, colour = NA, size = 0.25), 
+        panel.border =      element_blank(),
+        panel.grid.major =  element_blank(),
+        panel.grid.minor =  element_blank(),
+        axis.line =         element_line(colour = "black", size=0.25),
+        axis.ticks =        element_line(colour = "black", size=0.25),
+        axis.text.x = element_text(size = 6 , lineheight = 0.9, colour = "black", vjust = 1),
+        axis.text.y = element_text(size = 6, lineheight = 0.9, colour = "black", hjust = 1))+
+  coord_cartesian(ylim = c(4, 8), xlim= c(0,10))+
+  scale_y_continuous("To what extent did you enjoy your speed date?")+
+  scale_x_continuous("How important is it that the person you date is your race?")
+
+
+
+# who likes variety
+
+plot.data2 <- race.data[,mean(V1), by = c("equal","race")]
+setnames(plot.data2, "race", "num")
+plot.data2 <- merge(plot.data2, racekey, by = "num")
+
+
+Plot2<- ggplot(plot.data2,
+       aes(x = descr, y = V1, colour = equal)) + 
+  geom_point(size = 2) +
+  geom_line(size = 1)+
+  theme(legend.title = element_blank())+
+  theme(panel.background =  element_rect(fill = NA, colour = NA, size = 0.25), 
+        panel.border =      element_blank(),
+        panel.grid.major =  element_blank(),
+        panel.grid.minor =  element_blank(),
+        axis.line =         element_line(colour = "black", size=0.25),
+        axis.ticks =        element_line(colour = "black", size=0.25),
+        axis.text.x = element_text(size = 6 , lineheight = 0.9, colour = "black", vjust = 1),
+        axis.text.y = element_text(size = 6, lineheight = 0.9, colour = "black", hjust = 1))+
+  coord_cartesian(ylim = c(4, 8))+
+  scale_y_continuous("To what extent did you enjoy your speed date?")+
+  scale_x_discrete("")
+
+#false dating different race
+
+# heatmap
+racedt <- race.data[,mean(V1, na.rm = T), by =  c("race","race_o")]
+
+
+
+racedt <- racedt[race< 5]
+racedt <- racedt[race_o< 5]
+
+racedt <- data.table(sqldf("select * from racedt left join racekey on race == num"))
+setnames(racedt, "descr", "descr.this")
+racedt <- data.table(sqldf("select * from racedt left join racekey on race_o == racekey.num"))
+setnames(racedt, "descr", "descr.other")
+
+
+Plot3 <- ggplot(racedt, aes(descr.this,descr.other))+ 
+  geom_tile(aes(fill = V1))+
+  scale_fill_gradient(low = "white", high = "red")+
+  scale_y_discrete("Race of speed dating partner")+
+  scale_x_discrete("Race of speed dater who is reporting satisfaction score")
+
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 Plot1
 ```
 
@@ -103,7 +338,11 @@ Key findings
 ###Question 3: How much do you enjoy your date depending on if your date is the same race as you?
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis',fig.align='center', fig.height=4,fig.width= 6, fig=TRUE}
+<<<<<<< HEAD
 source("SpeedDatingUlf.R")
+=======
+
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 Plot2
 ```
 
@@ -125,7 +364,11 @@ Key findings
 ###Question 4: How much do you enjoy your date depending on your race and race of the speed dating partner
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis',fig.align='center', fig.height=4,fig.width= 6, fig=TRUE}
+<<<<<<< HEAD
 source("SpeedDatingUlf.R")
+=======
+
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
 Plot3
 ```
 
@@ -149,6 +392,7 @@ Key findings
 <br>
 -	People of Asian heritage prefer dating their own race and those of Latino heritage over those of Black and White heritage
 
+<<<<<<< HEAD
 ```
 counter1 = 0
 y=0
@@ -193,3 +437,5 @@ qplot(data=sdd,  x=field_x, geom = "bar",colour=I("white") , fill=I("darkred")) 
 
 ```
 
+=======
+>>>>>>> a83c10cf7432f73c8fa84677e09c305883501f74
