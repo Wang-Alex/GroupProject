@@ -81,7 +81,7 @@ ProjectData_INITIAL <- d
 ```{r setupfactor, echo=TRUE, tidy=TRUE}
 # Please ENTER then original raw attributes to use. 
 # Please use numbers, not column names, e.g. c(1:5, 7, 8) uses columns 1,2,3,4,5,7,8
-factor_attributes_used = c(6:15)
+factor_attributes_used = c(8:17)
 
 # Please ENTER the selection criterions for the factors to use. 
 # Choices: "eigenvalue", "variance", "manual"
@@ -122,7 +122,6 @@ The data we use here have the following descriptive statistics:
 iprint.df(round(my_summary(ProjectDataFactor), 2))
 ```
 
-##should work if data set is clean and no empty rows
 
 
 ## Step 3: Check Correlations
@@ -228,11 +227,11 @@ iprint.df(t(head(NEW_ProjectData, 10)), scale=TRUE)
 ```{r setupcluster, echo=TRUE, tidy=TRUE}
 # Please ENTER then original raw attributes to use for the segmentation (the "segmentation attributes")
 # Please use numbers, not column names, e.g. c(1:5, 7, 8) uses columns 1,2,3,4,5,7,8
-segmentation_attributes_used = c(12,10,11,8) #c(10,19,5,12,3) 
+segmentation_attributes_used = c(14,12,13,11) #c(10,19,5,12,3) 
 
 # Please ENTER then original raw attributes to use for the profiling of the segments (the "profiling attributes")
 # Please use numbers, not column names, e.g. c(1:5, 7, 8) uses columns 1,2,3,4,5,7,8
-profile_attributes_used = c(2:15) 
+profile_attributes_used = c(2:17) 
 
 # Please ENTER the number of clusters to eventually use for this report
 numb_clusters_used = 3 # for boats possibly use 5, for Mall_Visits use 3
