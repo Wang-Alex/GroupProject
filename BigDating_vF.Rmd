@@ -370,8 +370,6 @@ distance_used = "euclidean"
 hclust_method = "ward.D"
 
 # Please ENTER the kmeans clustering method to use (options are:
-# "Hartigan-Wong", "Lloyd", "Forgy", "MacQueen").
-# DEFAULT is "Lloyd"
 kmeans_method = "Lloyd"
 
 ```
@@ -520,4 +518,3 @@ iprint.df(round(cluster_profile_ratios-1, 2))
 ```
 
 
-<center>![Conclusion](https://i.imgflip.com/1iofqv.jpg)</center>
